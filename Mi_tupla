@@ -2,5 +2,5 @@ String="Ternium"
 Integer="2012"
 Float="11.5"
 Boolean="True"
-Mi_tupla=(String,Integer,Float,Bolean)
+Mi_tupla=(String,Integer,Float,Boolean)
 print(Mi_tupla)
