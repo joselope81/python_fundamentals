@@ -4,3 +4,9 @@ Float="11.5"
 Boolean="True"
 Mi_tupla=(String,Integer,Float,Boolean)
 print(Mi_tupla)
+lista=[1,2,3,4]
+print(lista)
+Mi_tupla = ("Ternium", "2012", 11.5, True)
+print(Mi_tupla)
+Mi_lista = list(Mi_tupla)
+print(Mi_lista)
