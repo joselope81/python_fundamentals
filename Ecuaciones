@@ -1,0 +1,17 @@
+x = 24 / 2
+print("Yo tengo", x, "años")
+yo = 6
+y = (yo + 15) * 3
+print("Mi hermana tiene", y, "años")
+x = 24 / 2
+y = (6 + 15) * 3
+
+x = 24 / 2
+y = (6 + 15) * 3
+
+if x > y:
+    print("Yo", x, "soy mayor que mi hermana", y)
+elif x < y:
+    print("Mi hermana", y, "es mayor que yo", x)
+else:
+    print("Mi hermana y yo tenemos la misma edad", y)
