@@ -1,0 +1,28 @@
+def cuadratica(a, b, c):
+    print("La solución de la ecuación cuadrática")
+    print("x = (-b +/- √(b^2 - 4ac)) / 2a")
+    
+    discriminante = b**2 - 4*a*c
+    
+    if discriminante >= 0:
+        x1 = (-b + discriminante**0.5) / (2*a)
+        x2 = (-b - discriminante**0.5) / (2*a)
+        return x1, x2
+    else:
+        return "La respuesta cuenta con un valor imaginario"
+
+print("Ingrese el Valor de a:")
+a = float(input())
+print("Ingrese el Valor de b:")
+b = float(input())
+print("Ingrese el Valor de c:")
+c = float(input())
+
+soluciones = cuadratica(a, b, c)
+
+if isinstance(soluciones, tuple):
+    x1, x2 = soluciones
+    print("x1 =", x1)
+    print("x2 =", x2)
+else:
+    print(soluciones)
