@@ -1,0 +1,29 @@
+class Calculadora:
+    def sumar(self, a, b):
+        return a + b
+    
+    def restar(self, a, b):
+        return a - b
+    
+    def multiplicar(self, a, b):
+        return a * b
+    
+    def dividir(self, a, b):
+        if b != 0:
+            return a / b
+        else:
+            return "La operación de división es indefinida cuando el denominador es 0"
+
+def main():
+    calculadora = Calculadora()
+    
+    a = float(input("Ingrese el primer valor: "))
+    b = float(input("Ingrese el segundo valor: "))
+    
+    print("\nSuma:", calculadora.sumar(a, b))
+    print("Resta:", calculadora.restar(a, b))
+    print("Multiplicación:", calculadora.multiplicar(a, b))
+    print("División:", calculadora.dividir(a, b))
+
+if __name__ == "__main__":
+    main()
