@@ -1,0 +1,36 @@
+# Importar la librería de pandas
+import pandas as pd
+
+# Cargar el archivo CSV en Google Colab
+from google.colab import files
+uploaded = files.upload()
+
+# Obtener el nombre del archivo cargado
+nombre_archivo = next(iter(uploaded.keys()))
+
+# Leer el archivo CSV
+datos_atletas = pd.read_csv(nombre_archivo)
+
+# Filtrar atletas con medallas
+atletas_con_medallas = datos_atletas.dropna(subset=['Medal'])
+
+# Encontrar al atleta más veterano con medalla
+indice_mas_veterano = atletas_con_medallas['Age'].idxmax()
+atleta_mas_veterano = atletas_con_medallas.loc[indice_mas_veterano]
+
+# Filtrar atletas con medalla de oro y encontrar al más joven
+atletas_oro = atletas_con_medallas[atletas_con_medallas['Medal'] == 'Gold']
+indice_mas_joven_oro = atletas_oro['Age'].idxmin()
+atleta_mas_joven_oro = atletas_oro.loc[indice_mas_joven_oro]
+
+# Encontrar al atleta más condecorado
+atleta_mas_condecorado = atletas_con_medallas['Name'].value_counts().idxmax()
+registros_atleta_mas_condecorado = atletas_con_medallas[atletas_con_medallas['Name'] == atleta_mas_condecorado]
+
+# Crear un nuevo CSV con la información del atleta más condecorado
+registros_atleta_mas_condecorado.to_csv('atleta_mas_condecorado.csv', index=False)
+
+# Mostrar resultados
+print("Atleta más veterano con medalla:\n", atleta_mas_veterano)
+print("\nAtleta más joven con medalla de oro:\n", atleta_mas_joven_oro)
+print("\nAtleta más condecorado:\n", registros_atleta_mas_condecorado)
