@@ -1,0 +1,22 @@
+# Crear el diccionario de personas y números
+personas_numeros = {}
+
+# Solicitar al usuario ingresar nombres y números
+for _ in range(5):
+    nombre = input("Ingrese el nombre de la persona: ")
+    numero = int(input("Ingrese el número de la persona: "))
+    personas_numeros[nombre] = numero
+
+# Mostrar los valores del diccionario
+print("\nValores del Diccionario:")
+for persona, numero in personas_numeros.items():
+    print(f"{persona}: {numero}")
+
+# Encontrar el número más grande y más pequeño del diccionario
+numeros = list(personas_numeros.values())
+numero_mas_grande = max(numeros)
+numero_mas_pequeno = min(numeros)
+
+# Mostrar los números más grande y más pequeño
+print("\nNúmero más grande:", numero_mas_grande)
+print("Número más pequeño:", numero_mas_pequeno)
