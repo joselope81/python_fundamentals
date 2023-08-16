@@ -1,0 +1,5 @@
+import numpy as np
+matriz_3x3 = np.arange(9).reshape(3, 3)
+print(matriz_3x3)
+matriz_identidad = np.identity(6)
+print(matriz_identidad)
