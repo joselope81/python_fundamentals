@@ -1,0 +1,28 @@
+import numpy as np
+
+# Crear la matriz de ventas mensuales
+ventas_mensuales = np.array([
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+    [1, 2, 3, 4],
+])
+
+# Imprimir la matriz de ventas mensuales
+print("Matriz de Ventas Mensuales:")
+print(ventas_mensuales)
+
+# Calcular el total de ventas por producto
+total_de_ventas_producto = np.sum(ventas_mensuales, axis=0)
+
+# Imprimir el total de ventas por producto
+print("\nTotal de Ventas por Producto:")
+print(total_de_ventas_producto)
