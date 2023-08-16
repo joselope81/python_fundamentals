@@ -1,0 +1,56 @@
+def main():
+    compras = []
+    while True:
+        monto = float(input("Ingrese el monto de la compra (0 para terminar): "))
+        
+        if monto == 0:
+            break
+        elif monto < 0:
+            print("Monto inválido. Ingrese un valor positivo.")
+            continue
+        
+        compras.append(monto)
+    
+    total_a_pagar = sum(compras)
+    
+    if total_a_pagar > 1000:
+        descuento = total_a_pagar * 0.10
+        total_a_pagar -= descuento
+    
+    print("\nReporte de Compras:")
+    for i, compra in enumerate(compras, start=1):
+        print(f"Compra {i}: ${compra}")
+    
+    print(f"\nTotal a Pagar: ${total_a_pagar:.2f}")
+    
+if __name__ == "__main__":
+    main()
+def main():
+    tarifa_fija_primera_hora = 25
+    tarifa_hora_adicional = 15
+    tarifa_extra_8_horas = 200
+    
+    total_a_pagar = 0
+    
+    while True:
+        tiempo_minutos = int(input("Ingrese el tiempo en minutos (0 para terminar): "))
+        
+        if tiempo_minutos == 0:
+            break
+        elif tiempo_minutos < 0:
+            print("Tiempo inválido. Ingrese un valor positivo.")
+            continue
+        
+        if tiempo_minutos <= 60:
+            total_a_pagar += tarifa_fija_primera_hora
+        else:
+            horas_adicionales = (tiempo_minutos - 60) // 60
+            total_a_pagar += tarifa_fija_primera_hora + (horas_adicionales * tarifa_hora_adicional)
+        
+        if tiempo_minutos > 480:
+            total_a_pagar += tarifa_extra_8_horas
+    
+    print(f"\nTotal a Pagar: ${total_a_pagar:.2f}")
+    
+if __name__ == "__main__":
+    main()
