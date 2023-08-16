@@ -1,0 +1,31 @@
+import pandas as pd
+
+# Datos proporcionados
+salarios = {
+    "Nombre": ["Ringo", "John", "Paul", "George", "Yoko"],
+    "Edad": [45, 34, 42, 38, 47],
+    "Salario": [12000, 14000, 13000, 11000, 10000],
+    "Genero": ["M", "M", "M", "M", "F"]
+}
+
+# Crear DataFrame
+df = pd.DataFrame(salarios)
+
+# Identificar el salario más alto y más bajo
+salario_maximo = df['Salario'].max()
+salario_minimo = df['Salario'].min()
+
+# Calcular el rango de salarios
+rango_salarios = salario_maximo - salario_minimo
+
+# Mostrar el resultado
+print("Rango de Salarios:", rango_salarios)
+media_salarios = df['Salario'].mean()
+mediana_salarios = df['Salario'].median()
+desviacion_estandar_salarios = df['Salario'].std()
+
+# Mostrar resultados
+print("\nEstadísticas Descriptivas de Salarios:")
+print("Media:", media_salarios)
+print("Mediana:", mediana_salarios)
+print("Desviación Estándar:", desviacion_estandar_salarios)
