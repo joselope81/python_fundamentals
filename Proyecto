@@ -25,10 +25,10 @@ while True:
     datos1.sort_values(by=['Linea', 'Fecha', 'Hora Inicial'], inplace=True)
 
     # Generar el nombre del archivo xls de salida para el primer archivo
-    nuevo_nombre_archivo1 = 'Producción.xls'
+    nuevo_nombre_archivo1 = 'Producción.xlsx'
 
-    # Guardar el archivo modificado en un nuevo archivo xls
-    datos1.to_csv(nuevo_nombre_archivo1, index=False)
+    with pd.ExcelWriter(nuevo_nombre_archivo1) as writer:
+        datos1.to_excel(writer, index=False)
 
     # Descargar el archivo modificado
     files.download(nuevo_nombre_archivo1)
@@ -57,10 +57,10 @@ while True:
     datos2.sort_values(by=['Linea', 'Fecha', 'H.in.real'], inplace=True)
 
     # Generar el nombre del archivo xls de salida para el segundo archivo
-    nuevo_nombre_archivo2 = 'demoras.xls'
+    nuevo_nombre_archivo2 = 'Demoras.xlsx'
 
-    # Guardar el DataFrame modificado en un nuevo archivo xls
-    datos2.to_csv(nuevo_nombre_archivo2, index=False)
+    with pd.ExcelWriter(nuevo_nombre_archivo2) as writer:
+        datos1.to_excel(writer, index=False)
 
     # Descargar el archivo modificado
     files.download(nuevo_nombre_archivo2)
