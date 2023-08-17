@@ -1,0 +1,77 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from google.colab import files
+from datetime import datetime
+!pip install xlsxwriter
+
+
+
+
+# Función para calcular los tiempos y generar gráficos
+def calcular_tiempos(archivo1, archivo2):
+    # Leer y procesar el archivo 1
+    datos1 = pd.read_csv(archivo1, sep='|')
+    datos1['Fecha'] = datos1['Fecha'].str.replace('.', '/')
+    datos1['Hora Inicial'] = pd.to_datetime(datos1['Hora Inicial'], format='%H:%M:%S', errors='coerce')
+    datos1['Hora Fin'] = pd.to_datetime(datos1['Hora Fin'], format='%H:%M:%S', errors='coerce')
+    datos1['Hora Inicial'] = datos1['Hora Inicial'].apply(lambda x: x.replace(hour=0) if x.hour == 24 else x)
+    datos1['Tiempo'] = (datos1['Hora Fin'] - datos1['Hora Inicial']).dt.total_seconds() / 3600
+    tiempo_por_fecha_linea1 = datos1.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+
+    # Leer y procesar el archivo 2
+    datos2 = pd.read_csv(archivo2, sep='|', skiprows=8, encoding='latin1')
+    datos2.dropna(how='all', inplace=True)
+    datos2.dropna(how='all', axis=1, inplace=True)
+    datos2['Fecha'] = datos2['Fecha'].str.replace('.', '/')
+    datos2['Hora Inicial'] = pd.to_datetime(datos2['H.in.real'], format='%H:%M:%S', errors='coerce')
+    datos2['Hora Fin'] = pd.to_datetime(datos2['Fin ejec.'], format='%H:%M:%S', errors='coerce')
+    datos2['Hora Inicial'] = datos2['Hora Inicial'].apply(lambda x: x.replace(hour=0) if x.hour == 24 else x)
+    datos2['Tiempo'] = (datos2['Hora Fin'] - datos2['Hora Inicial']).dt.total_seconds() / 3600
+    tiempo_por_fecha_linea2 = datos2.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+
+    # Generar el archivo xls de tiempos con gráficos
+    nuevo_nombre_archivo_tiempos = 'tiempos_con_graficos.xlsx'
+    with pd.ExcelWriter(nuevo_nombre_archivo_tiempos, engine='xlsxwriter') as writer:
+        tiempo_por_fecha_linea1.to_excel(writer, sheet_name='Archivo1', index=False)
+        tiempo_por_fecha_linea2.to_excel(writer, sheet_name='Archivo2', index=False)
+        
+        workbook = writer.book
+        %matplotlib inline
+
+        for linea in tiempo_por_fecha_linea1['Linea'].unique():
+            datos_linea = tiempo_por_fecha_linea1[tiempo_por_fecha_linea1['Linea'] == linea]
+            sheet_name = f'Grafico_Linea_{linea}'
+            worksheet = workbook.add_worksheet(sheet_name)
+            
+            chart = workbook.add_chart({'type': 'column'})
+            chart.add_series({
+                'name': f'Línea {linea}',
+                'categories': f"='{sheet_name}'!$A$2:$A${len(datos_linea) + 1}",
+                'values': f"='{sheet_name}'!$C$2:$C${len(datos_linea) + 1}",
+            })
+            
+            chart.set_title({'name': f'Tiempos por día - Línea {linea}'})
+            chart.set_x_axis({'name': 'Fecha'})
+            chart.set_y_axis({'name': 'Tiempo (horas)'})
+            
+            worksheet.insert_chart('E5', chart)
+    
+    # Descargar el archivo de tiempos con gráficos
+    files.download(nuevo_nombre_archivo_tiempos)
+    print(f"Archivo de tiempos con gráficos guardado y descargado como {nuevo_nombre_archivo_tiempos}")
+
+# Bucle principal
+while True:
+    print("Cargar el Archivo de Producción:")
+    uploaded1 = files.upload()
+    nombre_archivo1 = next(iter(uploaded1.keys()))
+
+    print("Cargar el Archivo de Demoras:")
+    uploaded2 = files.upload()
+    nombre_archivo2 = next(iter(uploaded2.keys()))
+
+    calcular_tiempos(nombre_archivo1, nombre_archivo2)
+
+    respuesta = input("¿Deseas calcular los tiempos de otro par de archivos? (S/N): ")
+    if respuesta.lower() != 's':
+        break
