@@ -1,0 +1,146 @@
+import pandas as pd
+from google.colab import files
+import matplotlib.pyplot as plt
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.drawing.image import Image as XLImage
+from io import BytesIO
+
+# Bucle principal
+while True:
+    # Solicitar la carga del primer archivo CSV desde la computadora
+    print("Cargar Archivo de Producción")
+    uploaded1 = files.upload()
+
+    # Obtener el nombre del primer archivo cargado
+    nombre_archivo1 = next(iter(uploaded1.keys()))
+
+    # Leer el primer archivo y convertirlo a DataFrame
+    datos1 = pd.read_csv(nombre_archivo1, sep='|')
+
+    # Modificar los datos de Fecha
+    datos1['Fecha'] = datos1['Fecha'].str.replace('.', '/')
+
+    # Ordenar los datos por línea, fecha y hora inicio
+    datos1.sort_values(by=['Linea', 'Fecha', 'Hora Inicial'], inplace=True)
+
+    # Generar el nombre del archivo xls de salida para el primer archivo
+    nuevo_nombre_archivo1 = 'Producción.xls'
+
+    # Guardar el archivo modificado en un nuevo archivo xls
+    datos1.to_csv(nuevo_nombre_archivo1, index=False)
+
+    # Descargar el archivo modificado
+    files.download(nuevo_nombre_archivo1)
+
+    # Mostrar mensaje de confirmación
+    print(f"Archivo modificado guardado y descargado como {nuevo_nombre_archivo1}")
+
+    # Solicitar la carga del segundo archivo CSV desde la computadora
+    print("Cargar Archivo de Demoras")
+    uploaded2 = files.upload()
+
+    # Obtener el nombre del segundo archivo cargado
+    nombre_archivo2 = next(iter(uploaded2.keys()))
+
+    # Leer el segundo archivo y omitir las primeras 8 líneas
+    datos2 = pd.read_csv(nombre_archivo2, sep='|', skiprows=8, encoding='latin1')
+
+    # Eliminar líneas y columnas en blanco
+    datos2.dropna(how='all', inplace=True)
+    datos2.dropna(how='all', axis=1, inplace=True)
+
+    # Modificar el formato de los datos Fecha
+    datos2['Fecha'] = datos2['Fecha'].str.replace('.', '/')
+
+    # Ordenar los datos por línea, fecha y hora inicio
+    datos2.sort_values(by=['Linea', 'Fecha', 'H.in.real'], inplace=True)
+
+    # Generar el nombre del archivo xls de salida para el segundo archivo
+    nuevo_nombre_archivo2 = 'demoras.xls'
+
+    # Guardar el DataFrame modificado en un nuevo archivo xls
+    datos2.to_csv(nuevo_nombre_archivo2, index=False)
+
+    # Descargar el archivo modificado
+    files.download(nuevo_nombre_archivo2)
+
+    # Mostrar mensaje de confirmación
+    print(f"Archivo modificado guardado y descargado como {nuevo_nombre_archivo2}")
+
+    # Calcular las horas de producción
+    datos1['Tiempo'] = (datos1['Tiempo Real'])
+
+    # Agrupar por Fecha y Línea y sumar el tiempo
+    tiempo_por_fecha_linea1 = datos1.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+
+    # Calcular las horas de demoras
+    datos2['Tiempo'] = (datos2['Duracion'])/60  # Convertir a horas las Demoras
+
+    # Agrupar por Fecha y Línea y sumar el tiempo
+    tiempo_por_fecha_linea2 = datos2.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+
+    # Crear un nuevo archivo de Excel
+    nuevo_nombre_archivo_tiempos = 'tiempos.xlsx'
+    workbook = Workbook()
+
+    # Crear hojas con los datos de Producción y Demoras
+    sheet_produccion = workbook.create_sheet(title='Producción')
+    for row in dataframe_to_rows(tiempo_por_fecha_linea1, index=False, header=True):
+        sheet_produccion.append(row)
+
+    sheet_demoras = workbook.create_sheet(title='Demoras')
+    for row in dataframe_to_rows(tiempo_por_fecha_linea2, index=False, header=True):
+        sheet_demoras.append(row)
+
+    # Crear una hoja adicional que suma producción y demoras por línea y día
+        tiempo_sumado = tiempo_por_fecha_linea1.merge(tiempo_por_fecha_linea2, on=['Fecha', 'Linea'], suffixes=('_Produccion', '_Demoras'))
+        tiempo_sumado['Tiempo_Total'] = tiempo_sumado['Tiempo_Produccion'] + tiempo_sumado['Tiempo_Demoras']
+
+    # Agregar la hoja de Horas Totales al archivo de Excel
+    sheet_totales = workbook.create_sheet(title='Horas Totales')
+    for row in dataframe_to_rows(tiempo_sumado, index=False, header=True):
+        sheet_totales.append(row)
+
+    # Guardar los tiempos en un nuevo archivo xlsx con hojas separadas
+    with pd.ExcelWriter(nuevo_nombre_archivo_tiempos) as writer:
+        tiempo_por_fecha_linea1.to_excel(writer, sheet_name='Producción', index=False)
+        tiempo_por_fecha_linea2.to_excel(writer, sheet_name='Demoras', index=False)
+        tiempo_sumado.to_excel(writer, sheet_name='Horas Totales', index=False) 
+    
+    # Generar gráficos por línea
+    for linea in tiempo_por_fecha_linea1['Linea'].unique():
+        datos_linea = tiempo_por_fecha_linea1[tiempo_por_fecha_linea1['Linea'] == linea]
+        plt.figure(figsize=(10, 6))
+        plt.plot(datos_linea['Fecha'], datos_linea['Tiempo'], marker='o', label='Producción')
+
+        plt.xlabel('Fecha')
+        plt.ylabel('Tiempo')
+        plt.title(f'Tiempos por línea {linea}')
+        plt.legend()
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        img_stream = BytesIO()
+        plt.savefig(img_stream, format='png')
+        plt.close()
+
+        # Reiniciar el flujo de BytesIO para evitar el error de I/O cerrado
+        img_stream.seek(0)
+        img = XLImage(img_stream)
+        img.anchor = 'B2'
+        sheet_grafico = workbook.create_sheet(title=f'Gráfico Línea {linea}')
+        sheet_grafico.add_image(img)
+
+    # Generar el nombre del archivo xlsx de salida para los tiempos
+    nuevo_nombre_archivo_tiempos = 'tiempos.xlsx'
+
+    # Guardar el archivo de Excel con las hojas y las imágenes
+    workbook.save(nuevo_nombre_archivo_tiempos)
+
+    # Descargar el archivo de Excel con gráficos
+    files.download(nuevo_nombre_archivo_tiempos)
+
+    respuesta = input("¿Deseas cargar otro par de archivos? (S/N): ")
+    if respuesta.lower() != 's':
+        break  # Salir del bucle si la respuesta no es 'S'
