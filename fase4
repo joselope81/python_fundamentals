@@ -1,0 +1,68 @@
+import pandas as pd
+from google.colab import files
+
+while True:
+    # Solicitar la carga del primer archivo CSV desde la computadora
+    print("Cargar Archivo de Producción")
+    uploaded1 = files.upload()
+
+    # Obtener el nombre del primer archivo cargado
+    nombre_archivo1 = next(iter(uploaded1.keys()))
+
+    # Leer el primer archivo y convertirlo a DataFrame
+    datos1 = pd.read_csv(nombre_archivo1, sep='|')
+
+    # Modificar la primera columna reemplazando los puntos por barras
+    datos1['Fecha'] = datos1['Fecha'].str.replace('.', '/')
+
+    # Ordenar los datos por línea, fecha y hora inicio
+    datos1.sort_values(by=['Linea', 'Fecha', 'Hora Inicial'], inplace=True)
+
+    # Generar el nombre del archivo xls de salida para el primer archivo
+    nuevo_nombre_archivo1 = 'Producción.xls'
+
+    # Guardar el DataFrame modificado en un nuevo archivo xls
+    datos1.to_csv(nuevo_nombre_archivo1, index=False)
+
+    # Descargar el archivo modificado
+    files.download(nuevo_nombre_archivo1)
+
+    # Mostrar mensaje de confirmación
+    print(f"Archivo modificado guardado y descargado como {nuevo_nombre_archivo1}")
+
+    # Solicitar la carga del segundo archivo CSV desde la computadora
+    uploaded2 = files.upload()
+
+    # Obtener el nombre del segundo archivo cargado
+    print("Cargar Archivo de Demoaras")
+    nombre_archivo2 = next(iter(uploaded2.keys()))
+
+    # Leer el segundo archivo y omitir las primeras 8 líneas
+    datos2 = pd.read_csv(nombre_archivo2, sep='|', skiprows=8, encoding='latin1')
+
+    # Eliminar líneas y columnas en blanco
+    datos2.dropna(how='all', inplace=True)
+    datos2.dropna(how='all', axis=1, inplace=True)
+
+    # Modificar la primera columna reemplazando los puntos por barras
+    datos2['Fecha'] = datos2['Fecha'].str.replace('.', '/')
+
+    # Ordenar los datos por línea, fecha y hora inicio
+    datos2.sort_values(by=['Linea', 'Fecha', 'H.in.real'], inplace=True)
+
+    # Generar el nombre del archivo xls de salida para el segundo archivo
+    nuevo_nombre_archivo2 = 'demoras.xls'
+
+    # Guardar el DataFrame modificado en un nuevo archivo xls
+    datos2.to_csv(nuevo_nombre_archivo2, index=False)
+
+    # Descargar el archivo modificado
+    files.download(nuevo_nombre_archivo2)
+
+    # Mostrar mensaje de confirmación
+    print(f"Archivo modificado guardado y descargado como {nuevo_nombre_archivo2}")
+
+    # Preguntar al usuario si desea cargar otro par de archivos
+    respuesta = input("¿Deseas cargar otro par de archivos? (S/N): ")
+    if respuesta.lower() != 's':
+        break  # Salir del bucle si la respuesta no es 'S'
