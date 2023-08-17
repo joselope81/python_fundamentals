@@ -1,0 +1,35 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Solicitar la carga de un archivo CSV
+from google.colab import files
+uploaded = files.upload()
+
+# Obtener el nombre del archivo cargado
+nombre_archivo = next(iter(uploaded.keys()))
+
+# Leer el archivo CSV
+datos_atletas = pd.read_csv(nombre_archivo)
+
+# Filtrar atletas con medallas
+atletas_con_medallas = datos_atletas.dropna(subset=['Medal'])
+
+# Parte 1: Gráfica de barras de los 10 países con más medallas
+medallas_por_pais = atletas_con_medallas['Team'].value_counts().head(10)
+plt.figure(figsize=(10, 6))
+medallas_por_pais.plot(kind='bar', color='skyblue')
+plt.xlabel('País')
+plt.ylabel('Número de Medallas')
+plt.title('Top 10 Países con Más Medallas')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Parte 2: Gráfica de pastel de medallas por país en el año más reciente
+ultimo_año = atletas_con_medallas['Year'].max()
+medallas_ultimo_año = atletas_con_medallas[atletas_con_medallas['Year'] == ultimo_año]['Team'].value_counts()
+plt.figure(figsize=(8, 8))
+medallas_ultimo_año.plot(kind='pie', autopct='%1.1f%%', startangle=140)
+plt.title(f'Distribución de Medallas por País en el Año {ultimo_año}')
+plt.tight_layout()
+plt.show()
