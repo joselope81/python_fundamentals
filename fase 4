@@ -1,0 +1,74 @@
+import pandas as pd
+!pip install xlwt
+from google.colab import files
+from datetime import datetime
+
+while True:
+    # Solicitar la carga del primer archivo CSV desde la computadora
+    print("Cargar el Archivo de Producción:")
+    uploaded1 = files.upload()
+
+    # Obtener el nombre del primer archivo cargado
+    nombre_archivo1 = next(iter(uploaded1.keys()))
+
+    # Leer el primer archivo y convertirlo a DataFrame
+    datos1 = pd.read_csv(nombre_archivo1, sep='|')
+
+    # Modificar la primera columna reemplazando los puntos por barras
+    datos1['Fecha'] = datos1['Fecha'].str.replace('.', '/')
+
+    # Convertir las columnas de tiempo a formato datetime
+    datos1['Hora Inicial'] = pd.to_datetime(datos1['Hora Inicial'], format='%H:%M:%S', errors='coerce')
+    datos1['Hora Fin'] = pd.to_datetime(datos1['Hora Fin'], format='%H:%M:%S', errors='coerce')
+
+    # Calcular la diferencia de tiempo
+    datos1['Tiempo'] = (datos1['Hora Fin'] - datos1['Hora Inicial']).dt.total_seconds() / 3600  # Convertir a horas
+
+    # Agrupar por Fecha y Línea y sumar el tiempo
+    tiempo_por_fecha_linea1 = datos1.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+
+    # Solicitar la carga del segundo archivo CSV desde la computadora
+    print("Cargar el Archivo de Demoras")
+    uploaded2 = files.upload()
+
+    # Obtener el nombre del segundo archivo cargado
+    nombre_archivo2 = next(iter(uploaded2.keys()))
+
+    # Leer el segundo archivo y omitir las primeras 8 líneas
+    datos2 = pd.read_csv(nombre_archivo2, sep='|', skiprows=8, encoding='latin1')
+
+    # Eliminar líneas y columnas en blanco
+    datos2.dropna(how='all', inplace=True)
+    datos2.dropna(how='all', axis=1, inplace=True)
+
+    # Modificar la primera columna reemplazando los puntos por barras
+    datos2['Fecha'] = datos2['Fecha'].str.replace('.', '/')
+
+    # Convertir las columnas de tiempo a formato datetime
+    datos2['Hora Inicial'] = pd.to_datetime(datos2['H.in.real'], format='%H:%M:%S', errors='coerce')
+    datos2['Hora Fin'] = pd.to_datetime(datos2['Fin ejec.'], format='%H:%M:%S', errors='coerce')
+
+    # Calcular la diferencia de tiempo
+    datos2['Tiempo'] = (datos2['Hora Fin'] - datos2['Hora Inicial']).dt.total_seconds() / 3600  # Convertir a horas
+
+    # Agrupar por Fecha y Línea y sumar el tiempo
+    tiempo_por_fecha_linea2 = datos2.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+
+    # Generar el nombre del archivo xls de salida para los tiempos
+    nuevo_nombre_archivo_tiempos = 'tiempos.xls'
+
+    # Guardar los tiempos en un nuevo archivo xls
+    with pd.ExcelWriter(nuevo_nombre_archivo_tiempos) as writer:
+        tiempo_por_fecha_linea1.to_excel(writer, sheet_name='Archivo1', index=False)
+        tiempo_por_fecha_linea2.to_excel(writer, sheet_name='Archivo2', index=False)
+
+    # Descargar el archivo de tiempos
+    files.download(nuevo_nombre_archivo_tiempos)
+
+    # Mostrar mensaje de confirmación
+    print(f"Archivo de tiempos guardado y descargado como {nuevo_nombre_archivo_tiempos}")
+
+    # Preguntar al usuario si desea calcular otro par de archivos
+    respuesta = input("¿Deseas calcular los tiempos de otro par de archivos? (S/N): ")
+    if respuesta.lower() != 's':
+        break  # Salir del bucle si la respuesta no es 'S'
