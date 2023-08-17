@@ -15,7 +15,7 @@ while True:
     # Obtener el nombre del primer archivo cargado
     nombre_archivo1 = next(iter(uploaded1.keys()))
 
-    # Leer el primer archivo y convertirlo a DataFrame
+    # Leer el primer archivo
     datos1 = pd.read_csv(nombre_archivo1, sep='|')
 
     # Modificar los datos de Fecha
