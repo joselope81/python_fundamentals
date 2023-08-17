@@ -1,0 +1,29 @@
+import pandas as pd
+from google.colab import files
+
+# Solicitar la carga del archivo CSV desde la computadora
+uploaded = files.upload()
+
+# Obtener el nombre del archivo cargado
+nombre_archivo = next(iter(uploaded.keys()))
+
+# Leer el archivo y convertirlo a DataFrame
+datos = pd.read_csv(nombre_archivo, sep='|')
+
+# Modificar la primera columna reemplazando los puntos por barras
+datos['Fecha'] = datos['Fecha'].str.replace('.', '/')
+
+# Ordenar los datos por línea, fecha y hora inicio
+datos.sort_values(by=['Linea', 'Fecha','Hora Inicial'], inplace=True)
+
+# Generar el nombre del nuevo archivo xls
+nuevo_nombre_archivo = 'datos_modificados.xls'
+
+# Guardar el DataFrame modificado en un nuevo archivo xls
+datos.to_csv(nuevo_nombre_archivo, index=False)
+
+# Descargar el archivo modificado
+files.download(nuevo_nombre_archivo)
+
+# Mostrar mensaje de confirmación
+print(f"Archivo modificado guardado y descargado como {nuevo_nombre_archivo}")
