@@ -21,6 +21,9 @@ while True:
     # Modificar los datos de Fecha
     datos1['Fecha'] = datos1['Fecha'].str.replace('.', '/')
 
+    # Modificar los datos de Fecha
+    datos1['Fecha'] = pd.to_datetime(datos1['Fecha'], dayfirst=True).dt.strftime('%d-%m')
+
     # Ordenar los datos por línea, fecha y hora inicio
     datos1.sort_values(by=['Linea', 'Fecha', 'Hora Inicial'], inplace=True)
 
@@ -53,11 +56,15 @@ while True:
     # Modificar el formato de los datos Fecha
     datos2['Fecha'] = datos2['Fecha'].str.replace('.', '/')
 
+    # Modificar los datos de Fecha
+    datos2['Fecha'] = pd.to_datetime(datos2['Fecha'], dayfirst=True).dt.strftime('%d-%m')
+
     # Ordenar los datos por línea, fecha y hora inicio
     datos2.sort_values(by=['Linea', 'Fecha', 'H.in.real'], inplace=True)
 
     # Generar el nombre del archivo xls de salida para el segundo archivo
     nuevo_nombre_archivo2 = 'Demoras.xlsx'
+
 
     with pd.ExcelWriter(nuevo_nombre_archivo2) as writer:
         datos1.to_excel(writer, index=False)
@@ -85,7 +92,7 @@ while True:
     workbook = Workbook()
 
     # Crear hojas con los datos de Producción y Demoras
-    sheet_produccion = workbook.create_sheet(title='Producción')
+    sheet_produccion = workbook.create_sheet(title='Tiempo Neto')
     for row in dataframe_to_rows(tiempo_por_fecha_linea1, index=False, header=True):
         sheet_produccion.append(row)
 
@@ -94,8 +101,8 @@ while True:
         sheet_demoras.append(row)
 
     # Crear una hoja adicional que suma producción y demoras por línea y día
-    tiempo_sumado = tiempo_por_fecha_linea1.merge(tiempo_por_fecha_linea2, on=['Fecha', 'Linea'], suffixes=('_Produccion', '_Demoras'))
-    tiempo_sumado['Tiempo_Total'] = tiempo_sumado['Tiempo_Produccion'] + tiempo_sumado['Tiempo_Demoras'].round(2)
+    tiempo_sumado = tiempo_por_fecha_linea1.merge(tiempo_por_fecha_linea2, on=['Fecha', 'Linea'], suffixes=('_Tiempo Neto', '_Demoras'))
+    tiempo_sumado['Tiempo_Total'] = tiempo_sumado['Tiempo_Tiempo Neto'] + tiempo_sumado['Tiempo_Demoras'].round(2)
 
     # Agregar la hoja de Horas Totales al archivo de Excel
     sheet_totales = workbook.create_sheet(title='Horas Totales')
@@ -104,7 +111,7 @@ while True:
 
     # Guardar los tiempos en un nuevo archivo xlsx con hojas separadas
     with pd.ExcelWriter(nuevo_nombre_archivo_tiempos) as writer:
-        tiempo_por_fecha_linea1.to_excel(writer, sheet_name='Producción', index=False)
+        tiempo_por_fecha_linea1.to_excel(writer, sheet_name='Tiempo Neto', index=False)
         tiempo_por_fecha_linea2.to_excel(writer, sheet_name='Demoras', index=False)
         tiempo_sumado.to_excel(writer, sheet_name='Horas Totales', index=False) 
     
@@ -112,17 +119,10 @@ while True:
     for linea in tiempo_por_fecha_linea1['Linea'].unique():
         datos_linea = tiempo_por_fecha_linea1[tiempo_por_fecha_linea1['Linea'] == linea].copy()
 
-        # Convertir las fechas en objetos datetime y obtener solo el día
-        datos_linea['Fecha'] = pd.to_datetime(datos_linea['Fecha'], dayfirst=True)
-        datos_linea['Dia'] = datos_linea['Fecha'].dt.day
-
-        # Ordenar los datos por día
-        datos_linea = datos_linea.sort_values(by='Dia')
-
         plt.figure(figsize=(10, 6))
-        plt.plot(datos_linea['Dia'], datos_linea['Tiempo'], marker='o', label='Producción')
+        plt.plot(datos_linea['Fecha'], datos_linea['Tiempo'], marker='o', label='Tiempo Neto')
 
-        plt.xlabel('Día')
+        plt.xlabel('Fecha')
         plt.ylabel('Tiempo')
         plt.title(f'Tiempos por línea {linea}')
         plt.legend()
