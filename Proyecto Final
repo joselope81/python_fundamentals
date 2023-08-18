@@ -19,10 +19,7 @@ while True:
     datos1 = pd.read_csv(nombre_archivo1, sep='|')
 
     # Modificar los datos de Fecha
-    datos1['Fecha'] = datos1['Fecha'].str.replace('.', '/')
-
-    # Modificar los datos de Fecha
-    datos1['Fecha'] = pd.to_datetime(datos1['Fecha'], dayfirst=True).dt.strftime('%d-%m')
+    datos1['Fecha'] = pd.to_datetime(datos1['Fecha'], dayfirst=True).dt.strftime('%d/%m/%y')
 
     # Ordenar los datos por línea, fecha y hora inicio
     datos1.sort_values(by=['Linea', 'Fecha', 'Hora Inicial'], inplace=True)
@@ -53,11 +50,8 @@ while True:
     datos2.dropna(how='all', inplace=True)
     datos2.dropna(how='all', axis=1, inplace=True)
 
-    # Modificar el formato de los datos Fecha
-    datos2['Fecha'] = datos2['Fecha'].str.replace('.', '/')
-
     # Modificar los datos de Fecha
-    datos2['Fecha'] = pd.to_datetime(datos2['Fecha'], dayfirst=True).dt.strftime('%d-%m')
+    datos2['Fecha'] = pd.to_datetime(datos2['Fecha'], dayfirst=True).dt.strftime('%d/%m/%y')
 
     # Ordenar los datos por línea, fecha y hora inicio
     datos2.sort_values(by=['Linea', 'Fecha', 'H.in.real'], inplace=True)
@@ -119,10 +113,13 @@ while True:
     for linea in tiempo_por_fecha_linea1['Linea'].unique():
         datos_linea = tiempo_por_fecha_linea1[tiempo_por_fecha_linea1['Linea'] == linea].copy()
 
-        plt.figure(figsize=(10, 6))
-        plt.plot(datos_linea['Fecha'], datos_linea['Tiempo'], marker='o', label='Tiempo Neto')
+        # Extraer el día de la fecha para mejorar la apariencia de la gráfica
+        datos_linea['Dia'] = datos_linea['Fecha'].str.split('/').str[0]
 
-        plt.xlabel('Fecha')
+        plt.figure(figsize=(10, 6))
+        plt.plot(datos_linea['Dia'], datos_linea['Tiempo'], marker='o', label='Tiempo Neto')
+
+        plt.xlabel('Dia')
         plt.ylabel('Tiempo')
         plt.title(f'Tiempos por línea {linea}')
         plt.legend()
