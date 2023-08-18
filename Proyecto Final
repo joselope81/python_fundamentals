@@ -15,7 +15,7 @@ while True:
     # Obtener el nombre del primer archivo cargado
     nombre_archivo1 = next(iter(uploaded1.keys()))
 
-    # Leer el primer archivo y convertirlo a DataFrame
+    # Leer el primer archivo
     datos1 = pd.read_csv(nombre_archivo1, sep='|')
 
     # Modificar los datos de Fecha
@@ -25,10 +25,10 @@ while True:
     datos1.sort_values(by=['Linea', 'Fecha', 'Hora Inicial'], inplace=True)
 
     # Generar el nombre del archivo xls de salida para el primer archivo
-    nuevo_nombre_archivo1 = 'Producción.xls'
+    nuevo_nombre_archivo1 = 'Producción.xlsx'
 
-    # Guardar el archivo modificado en un nuevo archivo xls
-    datos1.to_csv(nuevo_nombre_archivo1, index=False)
+    with pd.ExcelWriter(nuevo_nombre_archivo1) as writer:
+        datos1.to_excel(writer, index=False)
 
     # Descargar el archivo modificado
     files.download(nuevo_nombre_archivo1)
@@ -57,10 +57,10 @@ while True:
     datos2.sort_values(by=['Linea', 'Fecha', 'H.in.real'], inplace=True)
 
     # Generar el nombre del archivo xls de salida para el segundo archivo
-    nuevo_nombre_archivo2 = 'demoras.xls'
+    nuevo_nombre_archivo2 = 'Demoras.xlsx'
 
-    # Guardar el DataFrame modificado en un nuevo archivo xls
-    datos2.to_csv(nuevo_nombre_archivo2, index=False)
+    with pd.ExcelWriter(nuevo_nombre_archivo2) as writer:
+        datos1.to_excel(writer, index=False)
 
     # Descargar el archivo modificado
     files.download(nuevo_nombre_archivo2)
@@ -78,7 +78,7 @@ while True:
     datos2['Tiempo'] = (datos2['Duracion'])/60  # Convertir a horas las Demoras
 
     # Agrupar por Fecha y Línea y sumar el tiempo
-    tiempo_por_fecha_linea2 = datos2.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index()
+    tiempo_por_fecha_linea2 = datos2.groupby(['Fecha', 'Linea'])['Tiempo'].sum().reset_index().round(2)
 
     # Crear un nuevo archivo de Excel
     nuevo_nombre_archivo_tiempos = 'tiempos.xlsx'
@@ -94,8 +94,8 @@ while True:
         sheet_demoras.append(row)
 
     # Crear una hoja adicional que suma producción y demoras por línea y día
-        tiempo_sumado = tiempo_por_fecha_linea1.merge(tiempo_por_fecha_linea2, on=['Fecha', 'Linea'], suffixes=('_Produccion', '_Demoras'))
-        tiempo_sumado['Tiempo_Total'] = tiempo_sumado['Tiempo_Produccion'] + tiempo_sumado['Tiempo_Demoras']
+    tiempo_sumado = tiempo_por_fecha_linea1.merge(tiempo_por_fecha_linea2, on=['Fecha', 'Linea'], suffixes=('_Produccion', '_Demoras'))
+    tiempo_sumado['Tiempo_Total'] = tiempo_sumado['Tiempo_Produccion'] + tiempo_sumado['Tiempo_Demoras'].round(2)
 
     # Agregar la hoja de Horas Totales al archivo de Excel
     sheet_totales = workbook.create_sheet(title='Horas Totales')
@@ -110,11 +110,19 @@ while True:
     
     # Generar gráficos por línea
     for linea in tiempo_por_fecha_linea1['Linea'].unique():
-        datos_linea = tiempo_por_fecha_linea1[tiempo_por_fecha_linea1['Linea'] == linea]
-        plt.figure(figsize=(10, 6))
-        plt.plot(datos_linea['Fecha'], datos_linea['Tiempo'], marker='o', label='Producción')
+        datos_linea = tiempo_por_fecha_linea1[tiempo_por_fecha_linea1['Linea'] == linea].copy()
 
-        plt.xlabel('Fecha')
+        # Convertir las fechas en objetos datetime y obtener solo el día
+        datos_linea['Fecha'] = pd.to_datetime(datos_linea['Fecha'], dayfirst=True)
+        datos_linea['Dia'] = datos_linea['Fecha'].dt.day
+
+        # Ordenar los datos por día
+        datos_linea = datos_linea.sort_values(by='Dia')
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(datos_linea['Dia'], datos_linea['Tiempo'], marker='o', label='Producción')
+
+        plt.xlabel('Día')
         plt.ylabel('Tiempo')
         plt.title(f'Tiempos por línea {linea}')
         plt.legend()
@@ -131,6 +139,10 @@ while True:
         img.anchor = 'B2'
         sheet_grafico = workbook.create_sheet(title=f'Gráfico Línea {linea}')
         sheet_grafico.add_image(img)
+
+    # Eliminar la hoja en blanco generada por defecto
+        if 'Sheet' in workbook.sheetnames:
+          del workbook['Sheet']
 
     # Generar el nombre del archivo xlsx de salida para los tiempos
     nuevo_nombre_archivo_tiempos = 'tiempos.xlsx'
